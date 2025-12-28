@@ -9,121 +9,65 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" //postgressql is the database
+  url = env("DATABASE") //go to environment folder to get database connection
 }
 
-// ----- Enums -----
+model User{
+  id String @id @default(cuid()) //every user has a unique id that is automatically generated
+  email String @unique //every email is unique
+  firstName String? //first name is optional
+  lastName String? //last name is optional
+  handle String @unique //username is unique
+  image String? //image is optional
+  createdAt DateTime @default(now()) //take the date and time at the current momenmnt
 
-enum BuildStyle {
-  MEDIEVAL
-  MODERN
-  JAPANESE
-  UNDERGROUND
-  TREEHOUSE
-  OTHER
+  builds Build[] //list of builds they have created
+  favorties Favorite[] //list of builds they have favoriteds
 }
 
-enum Biome {
-  PLAINS
-  FOREST
-  DESERT
-  TAIGA
-  MOUNTAINS
-  JUNGLE
-  SWAMP
-  SAVANNA
-  SNOWY
-  NETHER
-  END
-  OCEAN
-  BEACH
-  MANGROVE
-  CHERRY_GROVE
-}
-
-enum Difficulty {
-  EASY
-  MEDIUM
-  HARD
-}
-
-enum BuildStatus {
-  DRAFT
-  PENDING
-  APPROVED
-}
-
-// ----- Models -----
-
-model User {
-  id        String   @id @default(cuid())
-  name      String?
-  handle    String   @unique
-  image     String?
+model Build{
+  id String @id @default(cuid())
+  title String
+  heroImage String
+  link String
+  tags Tag[]
+  biome
   createdAt DateTime @default(now())
-
-  builds    Build[]
-  favorites Favorite[]
-}
-
-model Build {
-  id          String      @id @default(cuid())
-  title       String
-  description String?
-  style       BuildStyle
-  biome       Biome
-  version     String
-  width       Int?
-  length      Int?
-  height      Int?
-  difficulty  Difficulty
-  status      BuildStatus @default(PENDING)
-  downloadUrl String?
-  seed        String?
-  coordinates String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
 
   createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
-
-  images    Image[]
-  tags      Tag[]
+  createdBy User @relation(fields: [createdById], references: [id], OnDelete: Cascade) //finds the relation to user
+  
+  images Image[]
   favorites Favorite[]
-
-  @@index([style])
-  @@index([biome])
-  @@index([difficulty])
-  @@index([version])
-  @@index([status])
 }
 
-model Tag {
-  id     String  @id @default(cuid())
-  name   String  @unique
-  builds Build[]
-}
-
-model Image {
-  id     String @id @default(cuid())
-  url    String
-  width  Int
-  height Int
-  order  Int    @default(0)
-
+model Image{
+  id String @id @default(cuid())
+  url String
+  width Int?
+  height Int?
+  order Int @default(0)
+  
   buildId String
-  build   Build  @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  build Build @relation(fields: [buildId], references: [id], OnDelete: Cascade)
 
-  @@index([buildId])
+  @@index([buildId])//creates index on buildId
 }
 
-model Favorite {
-  userId    String
-  buildId   String
+model Favorite{
+  userId String
+  buildId String
   createdAt DateTime @default(now())
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  build Build @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  user User @relational(fields: [userId], references: [id], onDelete:Cascade)
+  build Build @relational(fields:[buildId], references:[id], onDelete:Cascade)
+  
+  @@id([userId, buildId]) //creates composite primary key
+}
 
-  @@id([userId, buildId])
+model Tag{
+  id String @id @default(cuid())
+  name String @unique
+  builds Build[]
 }

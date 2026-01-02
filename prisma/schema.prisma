@@ -5,69 +5,87 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql" //postgressql is the database
-  url = env("DATABASE") //go to environment folder to get database connection
+  //url = env("DATABASE_URL") //go to environment folder to get database connection
 }
 
-model User{
-  id String @id @default(cuid()) //every user has a unique id that is automatically generated
-  email String @unique //every email is unique
+model User {
+  id        String   @id @default(cuid()) //every user has a unique id that is automatically generated
+  email     String   @unique //every email is unique
   firstName String? //first name is optional
-  lastName String? //last name is optional
-  handle String @unique //username is unique
-  image String? //image is optional
+  lastName  String? //last name is optional
+  handle    String   @unique //username is unique
+  image     String? //image is optional
   createdAt DateTime @default(now()) //take the date and time at the current momenmnt
 
-  builds Build[] //list of builds they have created
-  favorties Favorite[] //list of builds they have favoriteds
+  builds    Build[] //list of builds they have created
+  favorites Favorite[] //list of builds they have favorited
 }
 
-model Build{
-  id String @id @default(cuid())
-  title String
+model Build {
+  id        String   @id @default(cuid())
+  title     String
   heroImage String
-  link String
-  tags Tag[]
-  biome
+  link      String
+  tags      Tag[]
+  biome     Biome?
   createdAt DateTime @default(now())
 
   createdById String
-  createdBy User @relation(fields: [createdById], references: [id], OnDelete: Cascade) //finds the relation to user
-  
-  images Image[]
+  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade) //finds the relation to user
+
+  images    Image[]
   favorites Favorite[]
 }
 
-model Image{
-  id String @id @default(cuid())
-  url String
-  width Int?
+model Image {
+  id     String @id @default(cuid())
+  url    String
+  width  Int?
   height Int?
-  order Int @default(0)
-  
-  buildId String
-  build Build @relation(fields: [buildId], references: [id], OnDelete: Cascade)
+  order  Int    @default(0)
 
-  @@index([buildId])//creates index on buildId
+  buildId String
+  build   Build  @relation(fields: [buildId], references: [id], onDelete: Cascade)
+
+  @@index([buildId]) //creates index on buildId
 }
 
-model Favorite{
-  userId String
-  buildId String
+model Favorite {
+  userId    String
+  buildId   String
   createdAt DateTime @default(now())
 
-  user User @relational(fields: [userId], references: [id], onDelete:Cascade)
-  build Build @relational(fields:[buildId], references:[id], onDelete:Cascade)
-  
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  build Build @relation(fields: [buildId], references: [id], onDelete: Cascade)
+
   @@id([userId, buildId]) //creates composite primary key
 }
 
-model Tag{
-  id String @id @default(cuid())
-  name String @unique
+model Tag {
+  id     String  @id @default(cuid())
+  name   String  @unique
   builds Build[]
+}
+
+enum Biome {
+  PLAINS
+  FOREST
+  DESERT
+  TAIGA
+  MOUNTAINS
+  JUNGLE
+  SWAMP
+  SAVANNA
+  SNOWY
+  NETHER
+  END
+  OCEAN
+  BEACH
+  MANGROVE
+  CHERRY_GROVE
 }
